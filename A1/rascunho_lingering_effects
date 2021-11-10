@@ -1,0 +1,78 @@
+# delimit ;
+* 1. Setup;
+* clear ;
+* set more off;
+
+* use "path dos dados";
+* log using "path dos dados", replace;
+
+* Obs: summary statistics;
+* summarize [default = all_vars];
+* codebook [default = all_vars];
+* Obs: tabela personalizada (tabstat);
+* tabstat [must declare vars], stat(variance median cv) columns(statistic);
+
+* Obs: correlation matrix;
+* correlate;
+
+* Generate vars;
+* e.g. log;
+* generate dsds = ln(dsds);
+* e.g. lag;
+* generate dsds = l.dsds;
+* e.g. lag2;
+* generate dsds = l2.dsds;
+* e.g. difference (var.t - lag.var);
+* generate dsds = d.dsds;
+* e.g. difference2 (var.t - lag2.var);
+* generate dsds = d2.dsds;
+* e.g. dummy variables;
+* generate dum_i = 0;
+*	replace dum_i = 1 if t >= t0 & t <= t1;
+
+
+* 2. Questão de Lingering Effects;
+* 2.1. Modelo;
+* tsset time_var;
+* arima sales l.sales adver outras_var_e_dummies, ma(1);
+* Obs: processo autorregressivo = ar(i);
+
+* 2.2. Efeito cumulativo após n meses;
+scalar cumfx_nm = _b[adver]*((1-_b[l.sales]^n)/(1-_b[l.sales]));
+display cumfx_nm;
+
+* 2.3. Efeito cumulativo no infinito;
+scalar cumfx_inf = _b[adver]/(1 - _b[l.sales]);
+display cumfx_inf;
+
+* 2.4. Proporção do efeito cumulativo em termos do efeito total após n meses;
+scalar propfx_nm = 1 - _b[l.sales]^n;
+display propfx_nm;
+
+* 2.5. Meses até K% do efeito;
+scalar m_fx_Kprct = ln(1 - Kprct)/ln(_b[l.sales]);
+display m_fx_Kprct ;
+
+
+* Obs: o modelo de Lingering Effects é particularmente prejudicado pelo viés de agregação temporal, uma vez que na maior parte dos produtos, os efeitos dos anúncios concentram-se quase totalmente no primeiro ano após o lançamento das campanhas de marketing. Além disso, a periodicidade da compra da maior parte dos produtos (viz. os bens não duráveis) é mensal, semanal ou até mesmo diária. Desse modo, é necessário estimar os efeitos dos anúncios com dados de frequência maior.;
+
+
+log close;
+
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;

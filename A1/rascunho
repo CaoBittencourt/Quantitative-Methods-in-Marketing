@@ -1,0 +1,36 @@
+# delimit ;
+* 1. Setup;
+* clear ;
+* set more off;
+
+* use "path dos dados";
+* log using "path dos dados", replace;
+
+* Generate vars;
+* e.g. log;
+* generate dsds = ln(dsds);
+* e.g. lag;
+* generate dsds = l.dsds;
+* e.g. lag2;
+* generate dsds = l2.dsds;
+
+* 2. Questão de endogeneidade (2SLS);
+* 2.1. Teste de Hausman;
+* Regredir a variável potencialmente endógena nas demais (incluindo a IV);
+* regress var_potencialmente_endo todas_as_outras IV;
+* Obs: para subset, aplicar "if t0 ... val & t1 ... val | t0 ... val & t1 ... val" ao final;
+* Obs: para subset, aplicar "if tin(t0,t1) | tin(t2,t3)" ao final;
+
+* Tomar os resíduos e adicioná-los na regressão OLS usual (sem IV);
+* predict e, resid;
+* regress var_interesse var_potencialmente_endo todas_as_outras;
+* Obs: para subset, aplicar "if tin(t0,t1) | tin(t2,t3)" ao final;
+* "e" significativo => Evidência de endogeneidade (OLS viesado, 2SLS não viesado);
+
+* 2.2. 2SLS;
+* ivregress 2sls var_interesse todas_as_outras (var_endo = IV) 
+* Obs: para subset, aplicar "if t0 ... val & t1 ... val | t0 ... val & t1 ... val" ao final;
+* Obs: para subset, aplicar "if tin(t0,t1) | tin(t2,t3)" ao final;
+
+* 3. Teste de Hipótese;
+* test var = val;

@@ -1,0 +1,59 @@
+# delimit ;
+* 1. Setup;
+* clear ;
+* set more off;
+
+* use "path dos dados";
+* log using "path dos dados", replace;
+
+* Obs: summary statistics;
+* summarize [default = all_vars];
+* codebook [default = all_vars];
+* Obs: tabela personalizada (tabstat);
+* tabstat [must declare vars], stat(variance median cv) columns(statistic);
+
+* Obs: correlation matrix;
+* correlate;
+
+
+* Generate vars;
+* e.g. log;
+* generate dsds = ln(dsds);
+* e.g. lag;
+* generate dsds = l.dsds;
+* e.g. lag2;
+* generate dsds = l2.dsds;
+* e.g. difference (var.t - lag.var);
+* generate dsds = d.dsds;
+* e.g. difference2 (var.t - lag2.var);
+* generate dsds = d2.dsds;
+* e.g. dummy variables;
+* generate dum_i = 0;
+*	replace dum_i = 1 if t >= t0 & t <= t1;
+
+* 2. Graphs;
+* Line graph;
+* tsset time_var;
+* graph twoway tsline var;
+* Obs: a variável temporal já foi declarada, então não é necessário declará-la novamente;
+
+* Scatterplot;
+* graph twoway scatter var_x var_y;
+
+* Histograma;
+* graph twoway histogram var, freq bin(n);
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;
+*;

@@ -1,0 +1,76 @@
+# delimit ;
+* 1. Setup;
+clear ;
+set more off;
+
+use "C:\Users\B35346\Documents\Stata\A1\exam1.dta";
+log using "C:\Users\B35346\Documents\Stata\A1\exam1.log", replace;
+
+* 1. Teste de Hausman;
+* Regredir a variável potencialmente endógena nas demais (incluindo a IV);
+regress adr  ypcr gnondefr;
+ 
+
+* Tomar os resíduos e adicioná-los na regressão OLS usual (sem IV);
+predict e, resid;
+regress cgr  adr ypcr e;
+
+* "e" significativo => Evidência de endogeneidade (OLS viesado, 2SLS não viesado);
+
+* 2. 2SLS;
+ivregress 2sls cgr  ypcr (adr = gnondefr), robust;
+
+* Obs: para testar a validade do instrumento (se não for superidentificado, i.e. se o número de instrumentos for exatamente o mesmo que o número de variáveis), basta acrescentar ", first" ou ", first robust" (no caso de regressão robusta) e avaliar a significância do coeficiente associado à IV.;
+* Obs: Se o modelo for superidentificado (número de IV > número var_endo), pode-se utilizar o teste de Sargan abaixo;
+* estat overid;
+* H0: IV não correlacionados com o erro;
+* Se não rejeitar H0 => IVs válidos;
+
+ivregress 2sls cgr  ypcr (adr = gnondefr), first robust; 
+
+* Comentário: no primeiro estágio da regressão, o coeficiente associado à variável instrumental é altamente significativo, indicando que trata-se de um bom instrumento. No entanto, o coeficiente associado aos anúncios (adr) não é significativo (p.value = 0.73), apesar de o instrumento ser significativo. Assim, deve-se concluir que, dada a especificação atual, a variável adr não é significativa.;
+
+* 3. Teste H0: B1 = 0.4;
+test ypcr = 0.4;
+
+* O p-valor do teste é 0.1949. Portanto, não pode-se rejeitar a hipótese de que B1 = 0.4 aos níveis de confiança usuais. Além disso, o próprio coeficiente estimado pela regressão 2SLS é significativo e de valor muito próximo a 0.4.; 
+
+* 4. 2SLS II;
+ivregress 2sls cgr  ypcr (adr = gnondefr govdefr), robust;
+estat overid;
+
+* Como p = 0.0015, rejeita-se H0 e, portanto, deve-se concluir que um ou mais dos instrumentos são fracos. Como já constatamos que gnondefr é um bom instrumento, deve-se concluir que govdefr é um instrumento fraco ou que a especificação do modelo está incorreta.;
+
+* 5. Current Effects Model;
+* Teste de Durbin-Watson para verificar a presença de correlação serial de primeira ordem: H0 = sem correlação serial de primeira ordem.;
+tsset year;	
+
+regress cgr adr;
+
+estat dwatson;
+	
+* Estatística de Durbin-Watson pode ter valores entre 0 e 4. Entre 1.6 e 2.4 => Não rejeita H0 => sem correlação serial de primeira ordem. Menor do que 1.2 => Rejeita H0 => correlação serial positiva. Maior do que 2.8 => Rejeita H0 => correlação serial negativa. Entre 1.2 e 1.6 ou entre 2.4 e 2.8 => não conclusivo.;
+
+* Evidência de correlação serial de primeira ordem => Estimar o modelo por GLS;   
+
+* Current Effects via transformação de Prais-Winstein; 
+
+prais cgr adr;
+
+* A estatística de Durbin-Watson  original era de 0.33 e a transformada é de 1.61. Portanto, conforme os critérios descritos acima, não verifica-se mais correlação serial de primeira ordem no modelo. ;
+
+* 6. Lingering Effects Model;
+* Modelo;
+tsset year;
+arima cgr l.cgr adr, ma(1);
+
+* Efeito cumulativo no infinito;
+scalar full_fx = _b[adr]/(1 - _b[l.cgr]);
+display full_fx;
+
+
+* Comentário: os coeficientes das variáveis utilizadas no modelo são todos significativos, indicando que a especificação é válida. O efeito cumulativo total é estimado conforme a progressão geométrica infinita full_fx, de valor igual a 0.8043. Assim, considerando a influência intertemporal dos anúncios sobre o consumo, conclui-se que seu impacto total é de cerca de 80% no longo prazo.
+
+
+
+log close;

@@ -1,0 +1,197 @@
+---------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\Jose Feres\Documents\MQM 2021\Testes e provas\Teste 1\answerst1.log
+  log type:  text
+ opened on:   5 Sep 2021, 22:17:20
+
+.      * Item 1: Hausman test to assess the endogeneity of variable lnpcerv.
+>  
+>  First, we need to construct the variables in log;
+.   generate lnconsumopc = ln(consumopc);
+(9 missing values generated)
+
+.  generate lnpcerv = ln(pcerv);
+(9 missing values generated)
+
+.  generate lnrenda = ln(renda);
+(9 missing values generated)
+
+.  generate lnpemb = ln(pemb);
+
+.  generate lnpub = ln(pub);
+(9 missing values generated)
+
+.   * Now we can proceed to the Hausman test.
+>  
+>    First step: regress variable lnpcerv (the variable potentially endogenous)
+>    on all exogenous variables including the instrument lnpemb;
+.   regress lnpcerv lnrenda lnpemb lnpub d_verao;
+
+      Source |       SS           df       MS      Number of obs   =        36
+-------------+----------------------------------   F(4, 31)        =      5.26
+       Model |  .038168644         4  .009542161   Prob > F        =    0.0024
+    Residual |  .056266333        31  .001815043   R-squared       =    0.4042
+-------------+----------------------------------   Adj R-squared   =    0.3273
+       Total |  .094434977        35  .002698142   Root MSE        =     .0426
+
+------------------------------------------------------------------------------
+     lnpcerv |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     lnrenda |  -.1401935   .1414848    -0.99   0.329    -.4287536    .1483667
+      lnpemb |  -.4208199   .1342864    -3.13   0.004    -.6946989   -.1469409
+       lnpub |   .0381149   .0257983     1.48   0.150    -.0145011    .0907309
+     d_verao |   .0093763   .0168257     0.56   0.581    -.0249399    .0436925
+       _cons |   4.153014   .8238096     5.04   0.000     2.472843    5.833184
+------------------------------------------------------------------------------
+
+.  predict e, resid;
+(9 missing values generated)
+
+.   * Second step estimate the original equation by adding the residual of the first
+>    stage as an additional eplanatory variable.;
+.   regress lnconsumopc lnpcerv lnrenda lnpub d_verao e;
+
+      Source |       SS           df       MS      Number of obs   =        36
+-------------+----------------------------------   F(5, 30)        =     26.28
+       Model |  .229660117         5  .045932023   Prob > F        =    0.0000
+    Residual |  .052437688        30  .001747923   R-squared       =    0.8141
+-------------+----------------------------------   Adj R-squared   =    0.7831
+       Total |  .282097804        35  .008059937   Root MSE        =    .04181
+
+------------------------------------------------------------------------------
+ lnconsumopc |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     lnpcerv |  -1.219201   .3131508    -3.89   0.001     -1.85874   -.5796616
+     lnrenda |  -.2577936   .1657081    -1.56   0.130    -.5962146    .0806275
+       lnpub |   .1028528   .0283775     3.62   0.001     .0448982    .1608074
+     d_verao |   .1527523   .0174463     8.76   0.000     .1171223    .1883823
+           e |   1.594021   .3593447     4.44   0.000      .860141    2.327901
+       _cons |   3.415485   1.271589     2.69   0.012     .8185542    6.012415
+------------------------------------------------------------------------------
+
+.   * We observe that the coefficient associated to the residual is significant. 
+>  This finding provides evidence the variable lnpcerv is endogeneous. In this case,
+>  the OLS estimator is inconsistent and biased and we should prefer an instumental
+>  variable method. ;
+.   * Item 2: estimation of the demand equation by 2SLS.;
+.     ivregress 2sls lnconsumopc (lnpcerv=lnpemb) lnpub lnrenda d_verao;
+
+Instrumental variables (2SLS) regression          Number of obs   =         36
+                                                  Wald chi2(4)    =      40.85
+                                                  Prob > chi2     =     0.0000
+                                                  R-squared       =     0.3073
+                                                  Root MSE        =     .07367
+
+------------------------------------------------------------------------------
+ lnconsumopc |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+     lnpcerv |  -1.219201   .5518346    -2.21   0.027    -2.300777    -.137625
+       lnpub |   .1028528   .0500069     2.06   0.040     .0048411    .2008644
+     lnrenda |  -.2577936   .2920109    -0.88   0.377    -.8301244    .3145373
+     d_verao |   .1527523   .0307438     4.97   0.000     .0924955     .213009
+       _cons |   3.415485   2.240795     1.52   0.127    -.9763918    7.807361
+------------------------------------------------------------------------------
+Instrumented:  lnpcerv
+Instruments:   lnpub lnrenda d_verao lnpemb
+
+.     * Since the variables are expressed in log, we can interpret the coefficients in 
+>   terms of elasticity. The high price elasticity suggest that consumers are
+>    quite sensitive to price variations: a 1% increase in the price of beer is associated to  
+>    a 1.22% reduction in consumption. The coefficient for advertising is
+>    positive and significant: a 1% increase in advertising expenditures
+>    is related to a 0.10% increase in consumption. Income elasticity is not
+>    statistic significant, suggesting the an income increase is not associated to 
+>    an increase in beer consumption. Finally the dummy d_verao suggests that
+>    beer consumption is 15.3% higher in summer when compared to other months.;
+.      * Item 3: hypothesis test for price elasticity = -1 ;
+.       test lnpcerv=-1;
+
+ ( 1)  lnpcerv = -1
+
+           chi2(  1) =    0.16
+         Prob > chi2 =    0.6912
+
+.           * p-value of 0.69 indicates that we cannot reject the null hypothesis 
+>     that the price elasticity is equal to -1.;
+.          * Item 4: Estimation of the lingering effects model and computation 
+>      of proportion of impact after 3 periods.;
+.       tsset mes;
+        time variable:  mes, 2004m1 to 2006m12
+                delta:  1 month
+
+.       arima consumopc l.consumopc pub, ma(1);
+
+(setting optimization to BHHH)
+Iteration 0:   log likelihood =  6.2344324  
+Iteration 1:   log likelihood =   6.599568  
+Iteration 2:   log likelihood =   7.315993  
+Iteration 3:   log likelihood =  7.3750282  
+Iteration 4:   log likelihood =  7.3854261  
+(switching optimization to BFGS)
+BFGS stepping has contracted, resetting BFGS Hessian (0)
+Iteration 5:   log likelihood =  7.3861894  
+Iteration 6:   log likelihood =  7.3861993  (backed up)
+Iteration 7:   log likelihood =  7.3862836  (backed up)
+Iteration 8:   log likelihood =  7.3864292  
+Iteration 9:   log likelihood =  7.3864292  (backed up)
+BFGS stepping has contracted, resetting BFGS Hessian (1)
+Iteration 10:  log likelihood =  7.3864612  
+Iteration 11:  log likelihood =  7.3864651  (backed up)
+Iteration 12:  log likelihood =  7.3864935  (backed up)
+Iteration 13:  log likelihood =  7.3865474  
+Iteration 14:  log likelihood =  7.3865478  (backed up)
+(switching optimization to BHHH)
+Iteration 15:  log likelihood =  7.3865762  
+Iteration 16:  log likelihood =  7.3865899  
+Iteration 17:  log likelihood =  7.3866334  
+Iteration 18:  log likelihood =  7.3866341  
+
+ARIMA regression
+
+Sample:  2004m2 - 2006m12                       Number of obs     =         35
+                                                Wald chi2(3)      =      68.16
+Log likelihood =  7.386634                      Prob > chi2       =     0.0000
+
+------------------------------------------------------------------------------
+             |                 OPG
+   consumopc |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+consumopc    |
+   consumopc |
+         L1. |   .6835532   .1422592     4.80   0.000     .4047303    .9623761
+             |
+         pub |   7.63e-06   1.37e-06     5.58   0.000     4.95e-06    .0000103
+       _cons |   .9405932   .5927627     1.59   0.113    -.2212003    2.102387
+-------------+----------------------------------------------------------------
+ARMA         |
+          ma |
+         L1. |   .1449175   .2278284     0.64   0.525    -.3016181     .591453
+-------------+----------------------------------------------------------------
+      /sigma |   .1958706   .0323337     6.06   0.000     .1324977    .2592435
+------------------------------------------------------------------------------
+Note: The test of the variance against zero is one sided, and the two-sided
+      confidence interval is truncated at zero.
+
+.       scalar proportion_m3 = 1-_b[l.consumopc]^3;
+
+.    display proportion_m3;
+.68061323
+
+.       * After 3 periods we obtain approximately 68% of the total impact of
+>      advertising on sales;
+.       * Item 5: number of months to attain 85% of the impact of advertising 
+>      on sales;
+.       scalar m_85 = ln(1-0.85)/ln(_b[l.consumopc]);
+
+.    display m_85;
+4.9865051
+
+.       * The result suggests that a new campaign should be launched
+>      after 5 months, when 85% of the total impact of the previous campaign
+>          has been reached.;
+.                log close;
+      name:  <unnamed>
+       log:  C:\Users\Jose Feres\Documents\MQM 2021\Testes e provas\Teste 1\answerst1.log
+  log type:  text
+ closed on:   5 Sep 2021, 22:17:21
+---------------------------------------------------------------------------------------------------------------------------------------------

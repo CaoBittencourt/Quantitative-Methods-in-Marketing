@@ -1,0 +1,74 @@
+# delimit ;
+* 1. Setup;
+* clear ;
+* set more off;
+
+* use "path dos dados";
+* log using "path dos dados", replace;
+
+* Obs: summary statistics;
+* summarize [default = all_vars];
+* codebook [default = all_vars];
+* Obs: tabela personalizada (tabstat);
+* tabstat [must declare vars], stat(variance median cv) columns(statistic);
+
+* Obs: correlation matrix;
+* correlate;
+
+* Generate vars;
+* e.g. log;
+* generate dsds = ln(dsds);
+* e.g. lag;
+* generate dsds = l.dsds;
+* e.g. lag2;
+* generate dsds = l2.dsds;
+* e.g. difference (var.t - lag.var);
+* generate dsds = d.dsds;
+* e.g. difference2 (var.t - lag2.var);
+* generate dsds = d2.dsds;
+* e.g. dummy variables;
+* generate dum_i = 0;
+*	replace dum_i = 1 if t >= t0 & t <= t1;
+  
+  * Identifying our time indicator and creating our dummies;
+  
+   tsset year;
+   
+   generate dum1=0;
+   replace dum1=1 if tin(1908,1914);
+   
+   generate dum2=0;
+   replace dum2=1 if tin(1915,1925);
+   
+   generate dum3=0;
+   replace dum3=1 if tin(1926,1940);
+   
+* Teste de Durbin-Watson para verificar a presença de correlação serial de primeira ordem: H0 = sem correlação serial de primeira ordem.;
+	
+* regress OLS NORMAL;
+* estat dwatson;
+	
+* Estatística de Durbin-Watson de pode ter valores entre 0 e 4:
+Entre 1.6 e 2.4 => Não rejeita H0 => sem correlação serial de primeira ordem.
+
+Menor do que 1.2 => Rejeita H0 => correlação serial positiva.
+
+Maior do que 2.8 => Rejeita H0 => correlação serial negativa.
+	  
+Entre 1.2 e 1.6 ou entre 2.4 e 2.8 => não conclusivo.;
+
+* Evidência de correlação serial de primeira ordem => Estimar o modelo por GLS;   
+
+* Opção I: via transformação de Prais-Winstein (usar com amostras menores); 
+
+* prais REGRESSÃO NORMAL;
+
+* Opção I: via transformação de Cochrane-Orcutt (usar com amostras maiores); 
+
+* prais sales adver dum1 dum2 dum3, corc;
+	
+* No modelo por GLS não existe mais correlação serial de primeira ordem.; 	
+
+* log close ;
+   
+  
