@@ -1,9 +1,7 @@
 # PACOTES -----------------------------------------------------------------
 pkg <- c(
-  # 'readxl' #Leitura de excel
-  # 'rio' #Leitura de excel
-  'naniar','tidyverse' #Manipulação de dados e datas
-  # , 'mxf'
+  'rio' #Leitura de XML
+  ,'naniar','tidyverse' #Manipulação de dados e datas
 )
 
 # Ativa e/ou instala os pacotes 
@@ -17,7 +15,7 @@ lapply(pkg, function(x)
 
 
 # DADOS -------------------------------------------------------------------
-setwd('C:/Users/Sony/Documents/GitHub/Marketing/Projeto')
+setwd('C:/Users/Sony/Documents/GitHub/QMM/Projeto')
 
 # Heritage Index
 df.heritage.index <- read.csv(
@@ -34,15 +32,15 @@ df.cpi <- read.csv(
   url('https://docs.google.com/spreadsheets/d/e/2PACX-1vSj_c2eW0u0K_WexAlZpz3dzIQ97pjVv6fp-gHQhuJXjmOk6xaTahmfUZzOESB2jQ/pub?gid=2693956&single=true&output=csv')
   ,encoding = 'UTF-8')
 
+df.imo <- import('IMO_Team_2017.xml')
 
 # LIMPEZA DOS DADOS (NOMES E FORMATOS) -------------------------------------------------------
 # heritage.index %>% glimpse(.)
 # df.indicators %>% glimpse(.)
 # cpi %>% glimpse(.)
 
-# Nomes
-setNames(df.indicators, c('COUNTRY', 'SERIES', 'VALUE')) -> df.indicators
-
+# # Nomes
+# Heritage
 df.heritage.index %>% 
   names(.) -> names.new
 
@@ -62,43 +60,9 @@ names.new %>%
 df.heritage.index %>%
   setNames(names.new) -> df.heritage.index
 
-# Formatos corretos
-cpi.fct <- c(
-  'COUNTRY'
-  , 'ISO3'
-  , 'REGION'
-)
-
-heritage.fct <- c(
-  'ID'
-  ,'COUNTRY_NAME'
-  ,'WEBNAME'
-  ,'REGION'
-  ,'COUNTRY'
-)
-
-heritage.vars <- c(
-  'HERITAGE_INDEX_2017'
-  ,'PROPERTY_RIGHTS'
-  ,'JUDICAL_EFFECTIVENESS'
-  ,'GOVERNMENT_INTEGRITY'
-  ,'TAX_BURDEN'
-  ,'GOV_SPENDING'
-  ,'FISCAL_HEALTH'
-  ,'BUSINESS_FREEDOM'
-  ,'LABOR_FREEDOM'
-  ,'MONETARY_FREEDOM'
-  ,'TRADE_FREEDOM'
-  ,'INVESTMENT_FREEDOM'
-  ,'FINANCIAL_FREEDOM'
-)
-
-heritage.prct <- c(heritage.vars, names.new[str_detect(names.new, 'PRCT')])
-
-heritage.million <- names.new[str_detect(names.new, 'MILLI')]
-
-heritage.billion <- names.new[str_detect(names.new, 'BILLI')]
-
+# World Bank
+df.indicators %>%
+  setNames(c('COUNTRY', 'SERIES', 'VALUE')) -> df.indicators
 
 df.indicators %>% 
   filter(SERIES != '') %>% 
@@ -130,12 +94,42 @@ indicators.names %>%
   str_replace_all('__', '_') %>%
   str_remove_all('_$') -> indicators.names
 
-
 df.indicators %>%
   setNames(indicators.names) -> df.indicators
 
-indicators.prct <- indicators.names[str_detect(indicators.names, 'PRCT')]
+# Olimpiada Internacional de Matemática
+df.imo %>% 
+  rename_with(toupper) %>% 
+  rename(COUNTRY = NAME) -> df.imo
+
+# # Formatos corretos
+# Corruption Perception Index
+cpi.fct <- c(
+  'COUNTRY'
+  , 'ISO3'
+  , 'REGION'
+)
+
+# cpi.prct <- 'CPI_SCORE_2017'
+
+# Heritage
+heritage.fct <- c(
+  'ID'
+  ,'COUNTRY_NAME'
+  ,'WEBNAME'
+  ,'REGION'
+  ,'COUNTRY'
+)
+
+heritage.million <- names.new[str_detect(names.new, 'MILLI')]
+
+heritage.billion <- names.new[str_detect(names.new, 'BILLI')]
+
+# World Bank
 indicators.fct <- 'COUNTRY'
+
+# Olimpiada Internacional de Matemática
+imo.fct <- 'COUNTRY'
 
 Map(
   function(df, fct, prct, mill, bill){
@@ -157,11 +151,6 @@ Map(
           .cols = all_of(bill)
           , ~ .x * 1000000000
         )
-        # Porcentagem
-        ,across(
-          .cols = all_of(prct)
-          , ~ .x / 100
-        )
       ) %>% 
       rename_with(~ str_remove_all(.x, 'MILLIONS')) %>% 
       rename_with(~ str_remove_all(.x, 'BILLIONS')) %>% 
@@ -169,30 +158,27 @@ Map(
       rename_with(~ str_remove_all(.x, '_$')) -> df
     
   }
-  , df = list('cpi' = df.cpi, 'heritage' = df.heritage.index, 'indicators' = df.indicators)
-  , fct = list('cpi' = cpi.fct, 'heritage' = heritage.fct, 'indicators' = indicators.fct)
-  , prct = list('cpi' = NULL, 'heritage' = heritage.prct, 'indicators' = indicators.prct)
-  , mill = list('cpi' = NULL, 'heritage' = heritage.million, 'indicators' = NULL)
-  , bill = list('cpi' = NULL, 'heritage' = heritage.billion, 'indicators' = NULL)
+  , df = list('cpi' = df.cpi, 'heritage' = df.heritage.index, 'indicators' = df.indicators, 'imo' = df.imo)
+  , fct = list('cpi' = cpi.fct, 'heritage' = heritage.fct, 'indicators' = indicators.fct, 'imo' = imo.fct)
+  , mill = list('cpi' = NULL, 'heritage' = heritage.million, 'indicators' = NULL, 'imo' = NULL)
+  , bill = list('cpi' = NULL, 'heritage' = heritage.billion, 'indicators' = NULL, 'imo' = NULL)
 ) -> df.list
 
 # BASE DE DADOS AGREGADA -----------------------------------------------------
-# Usar left join para manter apenas aqueles países que têm CPI
 df.list$cpi %>% 
   inner_join(df.list$heritage, by = c('COUNTRY' = 'COUNTRY_NAME'), suffix = c('.x','.y')) %>%
-  inner_join(df.list$indicators, by = c('COUNTRY' = 'COUNTRY'), suffix = c('','.y')) %>% 
+  inner_join(df.list$indicators, by = c('COUNTRY' = 'COUNTRY'), suffix = c('','.y')) %>%
+  inner_join(df.list$imo, by = c('COUNTRY' = 'COUNTRY'), suffix = c('','.y')) %>%
   select(-ends_with('.x'), -ends_with('.y'), 'REGION.y') %>%
   rename(REGION = REGION.y) -> df.agg
 
-# Dummy CPI Score > 0.7
-df.agg %>%
-  mutate(DUMMY_CPI = ifelse(CPI_SCORE_2017 > .7, yes = 1, no = 0)) -> df.agg
-
-# AJUSTES FINAIS (MISSING VALUES) -----------------------------------------
-naniar::vis_miss(df.agg) # Poucos Na's: cerca de 7% da base de dados
+# MISSING VALUES -----------------------------------------
+naniar::vis_miss(df.agg) 
+naniar::gg_miss_fct(df.agg, REGION)
 
 # Solução adotada: imputação da mediana
-# Para adequar melhor os valores imputados, a mediana é calculada com base em grupos de países específicos
+# Para melhor adequar os valores imputados, 
+# a mediana é calculada com base em grupos de países específicos
 df.agg %>%
   group_by(REGION) %>%
   mutate(
@@ -205,51 +191,64 @@ df.agg %>%
       , quantile(GDP_PER_CAPITA_PPP) #Quantis de renda per capita por região
       , include.lowest = T
       , right = T)
+    
   ) %>% 
   group_by(REGION, factor(GDP_PER_CAPITA_QUANTILE)) %>%
-  mutate(across(
-    # NA'S nas colunas numéricas => mediana da região e do grupo (quantil) de renda per capita
+  mutate(across(# NA'S nas colunas numéricas => mediana da região e do grupo (quantil) de renda per capita
     .cols = where(~ is.numeric(.))
     ,.fns = function(x){ifelse(
       is.na(x)
       , yes = median(x, na.rm = T), no = x)} 
   )) %>% 
   group_by(REGION) %>% #Ainda restam alguns casos (coincidência de NA's em regiões e quantis de renda específicos)
-  mutate(across(
-    # NA'S nas colunas numéricas => mediana da região e do grupo (quantil) de renda per capita
+  mutate(across(# NA'S nas colunas numéricas => mediana da região e do grupo (quantil) de renda per capita
     .cols = where(~ is.numeric(.))
     ,.fns = function(x){ifelse(
       is.na(x)
       , yes = median(x, na.rm = T), no = x)} 
   )) %>% 
-  ungroup(.) %>% #Ainda alguns pouquíssimos casos (Banco Mundial não disponibiliza o índice de GINI de uma região inteira)
-  mutate(across(
-    # NA'S nas colunas numéricas => mediana da coluna
-    .cols = where(~ is.numeric(.))
-    ,.fns = function(x){ifelse(
-      is.na(x)
-      , yes = median(x, na.rm = T), no = x)} 
-  )) -> df.agg
+  ungroup(.) %>% #Ainda alguns pouquíssimos casos (Banco Mundial não disponibiliza o índice de GINI de uma região inteira) => drop
+  drop_na(.) -> df.agg
 
+naniar::vis_miss(df.agg)
+naniar::gg_miss_fct(df.agg, REGION)
 
-
-
-# PROBIT ------------------------------------------------------------------
+# VARIÁVEIS ADICIONAIS ----------------------------------------------------
+# Dummies CPI Score
 df.agg %>%
-  select(
-    where(~ !is.factor(.))
-    , -c(CPI_RANK_2017, N_SOURCES_2017, STD_ERROR_2017
-         ,WORLD_RANK, REGION_RANK, CPI_SCORE_2017)
-  ) -> df.agg.probit
+  mutate(
+    DUMMY_CPI = ifelse(CPI_SCORE_2017 >= 70, yes = 1, no = 0)
+    ,DUMMY_CPI_ORDERED = case_when(CPI_SCORE_2017 <= 30 ~ 1
+                                   
+                                   ,CPI_SCORE_2017 < 70 & 
+                                     CPI_SCORE_2017 > 30 ~ 2
+                                   
+                                   ,CPI_SCORE_2017 >= 70 ~ 3
+    )
+    ,across(
+      .cols = contains('_OF_GDP')
+      , ~ .x * GDP_PPP
+      ,.names = '{.col}_remove_suffix'
+    )
+  ) %>% 
+  rename_with(.cols = contains('_remove_suffix')
+              , .fn = function(x){
+                x %>% 
+                  str_remove('_remove_suffix') %>% 
+                  str_remove('_OF_GDP') %>% 
+                  str_remove('_PRCT') %>% 
+                  paste0('_PPP')
+              }) -> df.agg
 
-glm(
-  data = df.agg.probit
-  , formula = DUMMY_CPI ~ .
-  , family = binomial(link = 'probit')
-) -> lalala
-
-
+# Variáveis em Log
+df.agg %>% 
+  mutate(
+    across(
+      .cols = contains('PPP')
+      ,.fns = log
+      ,.names = 'log_{.col}'
+    )
+  ) -> df.aggssss
 
 # EXPORT ------------------------------------------------------------------
-
-
+write.csv(df.agg, file = 'probit_data.csv')
