@@ -1,0 +1,227 @@
+----------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\B35346\Desktop\A2_QMM_CaoBittencourtFerreira_Pt2\logs\tobit_donations.log
+  log type:  text
+ opened on:  19 Nov 2021, 00:13:31
+
+. * MODELO TOBIT;
+. global y 
+>         gift
+>         ;
+
+. global x
+>         resplastmail
+>         propresponse
+>         averagegift
+>         ;
+
+.         summarize $y $x;
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        gift |      4,268     7.44447    15.06256          0        250
+resplastmail |      4,268    .3348172    .4719818          0          1
+propresponse |      4,268    .4843592    .2533932    .090909          1
+ averagegift |      4,268    18.24284    78.70286          1       5005
+
+. summarize $y, detail;
+
+                            gift
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            0              0
+ 5%            0              0
+10%            0              0       Obs               4,268
+25%            0              0       Sum of Wgt.       4,268
+
+50%            0                      Mean            7.44447
+                        Largest       Std. Dev.      15.06256
+75%           10            200
+90%           25            250       Variance       226.8807
+95%           25            250       Skewness       5.838054
+99%           50            250       Kurtosis       66.91839
+
+. summarize $y 
+>         if $y >0, detail;
+
+                            gift
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            2              2
+ 5%            5              2
+10%            5              2       Obs               1,707
+25%           10              2       Sum of Wgt.       1,707
+
+50%           10                      Mean           18.61336
+                        Largest       Std. Dev.      18.95931
+75%           25            200
+90%           30            250       Variance       359.4553
+95%           50            250       Skewness       5.441946
+99%          100            250       Kurtosis       51.63641
+
+. histogram $y, bin(25) freq;
+(bin=25, start=0, width=10)
+
+.         tobit $y $x, ll(0) vce(robust);
+
+Refining starting values:
+
+Grid node 0:   log likelihood = -10779.756
+
+Fitting full model:
+
+Iteration 0:   log pseudolikelihood = -10779.756  
+Iteration 1:   log pseudolikelihood = -9643.9439  
+Iteration 2:   log pseudolikelihood = -9333.0008  
+Iteration 3:   log pseudolikelihood = -9328.0206  
+Iteration 4:   log pseudolikelihood = -9327.9823  
+Iteration 5:   log pseudolikelihood = -9327.9823  
+
+Tobit regression                                Number of obs     =      4,268
+                                                   Uncensored     =      1,707
+Limits: lower = 0                                  Left-censored  =      2,561
+        upper = +inf                               Right-censored =          0
+
+                                                F(   3,   4265)   =     106.19
+                                                Prob > F          =     0.0000
+Log pseudolikelihood = -9327.9823               Pseudo R2         =     0.0354
+
+------------------------------------------------------------------------------
+             |               Robust
+        gift |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+resplastmail |    4.94397   1.302268     3.80   0.000     2.390848    7.497093
+propresponse |   44.00654   3.271756    13.45   0.000      37.5922    50.42089
+ averagegift |   .0258913   .0194117     1.33   0.182    -.0121658    .0639483
+       _cons |  -33.07286   2.423774   -13.65   0.000    -37.82472   -28.32101
+-------------+----------------------------------------------------------------
+  var(e.gift)|   748.0768   87.15233                      595.3214    940.0282
+------------------------------------------------------------------------------
+
+.         * Comentário sobre os resultados do modelo tobit.
+>         É um erro comum interpretar os coeficientes do modelo tobit como os de uma regressão linear usual (i.e. como o efeito da
+> s variáveis explicativas sobre a variável dependente).
+>         Ao contrário, os coeficientes do modelo tobit referem-se aos efeitos sobre a variável *latente* à variável dependente.
+>         Assim, 
+>         
+>         1) um acréscimo unitário em "resplastmail" está associado a um efeito marginal de 4.94 USD sobre o valor *esperado* das 
+> doações. O efeito é significativo ao menor nível de significância (cf. p-valor 0.000) e, portanto, é quase certamente não nulo. 
+> Isso sugere que famílias que doaram na campanha passada sejam *previstas* como mais generosas na campanha atual.
+>         
+>         2) um acréscimo unitário em "propresponse" está associado a um efeito marginal de 44.00 USD sobre o valor *esperado* das
+>  doações. O efeito é significativo ao menor nível de significância (cf. p-valor 0.000) e, portanto, é quase certamente não nulo.
+>  Isso sugere que famílias que historicamente costumam doar à campanha sejam *previstas* como mais generosas também na campanha a
+> tual.
+>         
+>         3) um acréscimo unitário em "averagegift" está associado a um efeito marginal de 0.0258 USD sobre o valor *esperado* das
+>  doações. O p-valor associado a esse efeito é de 0.182, o que não permite rejeitar a hipótese de que seja nulo. Observando o int
+> ervalo de confiança de 95%, é evidente que os limites do intervalo são muito pequenos (centavos de USD para mais ou para menos),
+>  de modo que parece apropriado concluir que o efeito *previsto* de fato seja muito pequeno ou nulo. Isso sugere que a magnitude 
+> da generosidade das famílias (em média) não está associada à *previsão* de uma generosidade maior na campanha atual. Ao contrári
+> o, é a constância nas doações (o exercício repetido da generosidade) que tende a aumentar marginalmente o valor *previsto* das d
+> oações.
+>         
+>         4) como um todo, esses efeitos marginais indicam que o valor *previsto* das doações de famílias mais generosas no passad
+> o (próximo ou historicamente) é maior do que o valor *previsto* das doações de famílias menos generosas no passado (próximo ou h
+> istoricamente).
+> 
+> ;
+.         * MARGINAL EFFECTS (TRUNCATED/CONDITIONAL);
+. margins, dydx(*) atmeans predict (e(0,.));
+
+Conditional marginal effects                    Number of obs     =      4,268
+Model VCE    : Robust
+
+Expression   : E(gift|gift>0), predict(e(0,.))
+dy/dx w.r.t. : resplastmail propresponse averagegift
+at           : resplastmail    =    .3348172 (mean)
+               propresponse    =    .4843592 (mean)
+               averagegift     =    18.24284 (mean)
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+resplastmail |   1.451937   .3823784     3.80   0.000     .7024893    2.201385
+propresponse |   12.92377    .869968    14.86   0.000     11.21866    14.62888
+ averagegift |   .0076037   .0057013     1.33   0.182    -.0035706     .018778
+------------------------------------------------------------------------------
+
+. * Comentário sobre os efeitos marginais condicionais.
+>         Considerando *apenas as observações positivas* (i.e. doações não nulas), constata-se que:
+>         
+>         1) um acréscimo unitário em "resplastmail" está associado a um efeito marginal de 1.45 USD sobre as doações. O efeito é 
+> significativo ao menor nível de significância (cf. p-valor 0.000) e, portanto, é quase certamente não nulo. Isso sugere que famí
+> lias que doaram na campanha passada sejam mais generosas na campanha atual.
+>         
+>         2) um acréscimo unitário em "propresponse" está associado a um efeito marginal de 12.92 USD sobre as doações. O efeito é
+>  significativo ao menor nível de significância (cf. p-valor 0.000) e, portanto, é quase certamente não nulo. Isso sugere que fam
+> ílias que historicamente costumam doar à campanha sejam mais generosas também na campanha atual.
+>         
+>         3) um acréscimo unitário em "averagegift" está associado a um efeito marginal de 0.0076 USD sobre as doações. O p-valor 
+> associado a esse efeito é de 0.182, o que não permite rejeitar a hipótese de que seja nulo. Observando o intervalo de confiança 
+> de 95%, é evidente que os limites do intervalo são muito pequenos (centavos de USD para mais ou para menos), de modo que parece 
+> apropriado concluir que o efeito de fato seja muito pequeno ou nulo. Isso sugere que a magnitude da generosidade das famílias (e
+> m média) não está associada a uma generosidade maior na campanha atual. Ao contrário, é a constância nas doações (o exercício re
+> petido da generosidade) que tende a aumentar marginalmente o valor das doações realizadas.
+>         
+>         4) como um todo, esses efeitos marginais indicam que famílias mais generosas no passado (próximo ou historicamente), são
+>  mais propensas a fazerem doações maiores para a campanha, independentemente da média histórica de suas doações. É importante re
+> ssaltar que esses efeitos marginais referem-se às famílias cujas doações são não nulas.
+> 
+> 
+> * MARGINAL EFFECTS (CENSORED/UNCONDITIONAL);
+. margins, dydx(*) atmeans predict (ystar(0,.));
+
+Conditional marginal effects                    Number of obs     =      4,268
+Model VCE    : Robust
+
+Expression   : E(gift*|gift>0), predict(ystar(0,.))
+dy/dx w.r.t. : resplastmail propresponse averagegift
+at           : resplastmail    =    .3348172 (mean)
+               propresponse    =    .4843592 (mean)
+               averagegift     =    18.24284 (mean)
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   Std. Err.      z    P>|z|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+resplastmail |   1.791608   .4725817     3.79   0.000     .8653644    2.717851
+propresponse |   15.94719   1.017073    15.68   0.000     13.95377    17.94062
+ averagegift |   .0093825    .007037     1.33   0.182    -.0044097    .0231748
+------------------------------------------------------------------------------
+
+. * Comentário sobre os efeitos marginais não condicionais.
+>         Agora, considerando *também as observações nulas*, constata-se que:  
+>         
+>         1) um acréscimo unitário em "resplastmail" está associado a um efeito marginal de 1.79 USD sobre as doações. O efeito é 
+> significativo ao menor nível de significância (cf. p-valor 0.000) e, portanto, é quase certamente não nulo. Isso sugere que famí
+> lias que doaram na campanha passada sejam mais generosas na campanha atual.
+>         
+>         2) um acréscimo unitário em "propresponse" está associado a um efeito marginal de 15.94 USD sobre as doações. O efeito é
+>  significativo ao menor nível de significância (cf. p-valor 0.000) e, portanto, é quase certamente não nulo. Isso sugere que fam
+> ílias que historicamente costumam doar à campanha sejam mais generosas também na campanha atual.
+>         
+>         3) um acréscimo unitário em "averagegift" está associado a um efeito marginal de 0.0093 USD sobre as doações. O p-valor 
+> associado a esse efeito é de 0.182, o que não permite rejeitar a hipótese de que seja nulo. Observando o intervalo de confiança 
+> de 95%, é evidente que os limites do intervalo são muito pequenos (centavos de USD para mais ou para menos), de modo que parece 
+> apropriado concluir que o efeito de fato seja muito pequeno ou nulo. Isso sugere que a magnitude da generosidade das famílias (e
+> m média) não está associada a uma generosidade maior na campanha atual. Ao contrário, é a constância nas doações (o exercício re
+> petido da generosidade) que tende a aumentar marginalmente o valor das doações realizadas.
+>         
+>         4) como um todo, esses efeitos marginais indicam que famílias mais generosas no passado (próximo ou historicamente), são
+>  mais propensas a fazerem doações maiores para a campanha, independentemente da média histórica de suas doações. Esses efeitos m
+> arginais referem-se a todas as famílias, incluindo aquelas com doações nulas.
+> 
+> ;
+.  * Comentário final sobre os efeitos marginais.
+>         É evidente que os efeitos marginais sobre a variável latente (i.e. os coeficientes do modelo tobit) são os maiores dos t
+> rês, seguido pelos efeitos marginais não condicionais. Por fim, os efeitos marginais condicionais são os menores de todos os trê
+> s.
+> ;
+. log close;
+      name:  <unnamed>
+       log:  C:\Users\B35346\Desktop\A2_QMM_CaoBittencourtFerreira_Pt2\logs\tobit_donations.log
+  log type:  text
+ closed on:  19 Nov 2021, 00:13:35
+----------------------------------------------------------------------------------------------------------------------------------

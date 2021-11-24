@@ -1,0 +1,173 @@
+----------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\B35346\Desktop\CPI\probit_CPI.log
+  log type:  text
+ opened on:  18 Nov 2021, 02:08:36
+
+. * MODELO PROBIT;
+. * Comentário sobre as variáveis utilizadas.
+> Para a estimação do modelo probit com variáveis de renda, educação, idade e desigualdade (dentre outras à escolha), empregou-se 
+> as seguintes variáveis. 
+> 
+> 1) Para a medida de renda, o logarítmo do PIB PPP (paridade de poder de compra, a fim de facilitar comparações entre países).
+> 2) Para medir a educação, os gastos do governo com educação (como porcentagem do PIB).
+> 3) Para estimar a idade, tomou-se como critério a população em idade economicamente ativa (PEA).
+> 4) E, como medida de desigualdade, o índice de Gini. 
+> 
+> Outras variáveis testadas foram (e.g. no caso de educação): a taxa de alfabetização de adultos e jovens, a evasão escolar de ado
+> lescentes e crianças, a colocação do país na Olimpíada Internacional de Matemática e assim por diante. 
+> 
+> Foram testadas muitas combinações de variáveis explicativas adicionais, dentre medidas macroeconômicas, contas nacionais e índic
+> es de liberdade econômica (pode-se visualizar a lista completa de variáveis testadas na base de dados consolidada). No entanto, 
+> por simplicidade e consistência empírica, optou-se por realizar um estudo focado apenas em duas variáveis adicionais: a taxa de 
+> inflação e a taxa de desemprego. 
+> 
+> A tese que motiva a escolha da primeira dessas duas medidas é inspirada nos modelos neoclássicos e monetaristas em Macroeconomia
+> , que associam políticas fiscais e monetárias expansivas iniciadas pelo governo a níveis de preços permanentemente mais elevados
+> . No contexto de corrupção, é de se esperar que governos mais corruptos, utilizando-se da máquina pública para benefício próprio
+>  ilícito, façam uso dessas mesmas políticas expansivas em seus esquemas de corrupção. Alguns exemplos clássicos são: o superfatu
+> ramento de obras públicas, a emissão ilegítima de papel moeda e o desvio de verba de programas sociais. Em todo caso, a elevação
+>  permanente nos níveis de preços é resultado final de "descuidos" (lícitos ou ilícitos) no manejo do tesouro nacional por parte 
+> do governo. Assim, é de se esperar que países com maiores taxas de inflação estejam também mais envolvidos com corrupção e, alte
+> rnadamente, que os governos percebidos como mais "limpos" sejam também aqueles com orçamentos e bases monetárias equilibrados e,
+>  portanto, taxas de inflação mais baixas. 
+> 
+> Analogamente, espera-se que a taxa de desemprego seja mais elevada em países mais corruptos. Para uma explicação detalhada das r
+> elações entre desemprego e corrupção ver, por exemplo: "Dynamic Relationship between Corruption and Youth Unemployment Empirical
+>  Evidences from a System GMM Approach" publicado pelo World Bank Group (BOUZID, 2016).
+>   
+> ;
+.  global y 
+>         dummy_cpi // Dummy para os níveis de CPI determinados: CPI >= 0.7;     
+>         ;
+
+. global x
+>         log_gdp_ppp // Medida de renda;
+>         gov_expenditure_educ_prct_of_gdp // Medida de educação;
+>         gini_index // Medida de desigualdade;
+>         pop_ages_15to64_prct // Medida de estrutura etária da população;
+>         
+>         inflation_prct // Variável adicional: taxa de inflação;
+>         unemployment_prct // Variável adicional: taxa de desemprego;
+>         ;
+
+.         probit $y $x, vce(robust);
+
+Iteration 0:   log pseudolikelihood = -47.521868  
+Iteration 1:   log pseudolikelihood = -24.834391  
+Iteration 2:   log pseudolikelihood = -23.721786  
+Iteration 3:   log pseudolikelihood = -23.707559  
+Iteration 4:   log pseudolikelihood = -23.707555  
+Iteration 5:   log pseudolikelihood = -23.707555  
+
+Probit regression                               Number of obs     =         85
+                                                Wald chi2(6)      =      35.99
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -23.707555               Pseudo R2         =     0.5011
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+                       dummy_cpi |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+                     log_gdp_ppp |   .1882809   .1256157     1.50   0.134    -.0579214    .4344831
+gov_expenditure_educ_prct_of_gdp |   .5977932   .1537151     3.89   0.000      .296517    .8990693
+                      gini_index |    -.11323   .0281417    -4.02   0.000    -.1683868   -.0580732
+            pop_ages_15to64_prct |   .0113831   .0535609     0.21   0.832    -.0935944    .1163605
+                  inflation_prct |  -.1165836   .0767169    -1.52   0.129     -.266946    .0337788
+               unemployment_prct |  -.1362058   .0422115    -3.23   0.001    -.2189389   -.0534727
+                           _cons |  -3.869946   5.177133    -0.75   0.455    -14.01694    6.277049
+--------------------------------------------------------------------------------------------------
+
+.         * Comentário sobre os coeficientes. 
+>         Tratando-se de um modelo probit, não pode-se interpretar os coeficientes em termos de magnitude.
+>         Os sinais dos coeficientes, entretanto, indicam que:
+>         1) os efeitos da renda são positivos sobre a probabilidade de classificar um país como "limpo" a partir de seu score no 
+> CPI.
+>         2) a educação da população, medida pelos gastos do governo com educação, tem também um efeito positivo sobre o score de 
+> um país no CPI.
+>         3) ao contrário, a desigualdade (índice de Gini) tem efeito negativo sobre o score de um país no CPI. Assim, países mais
+>  desiguais tendem a ser identificados como "sujos".
+>         4) a estrutura etária da população (PEA) parece ter efeito positivo, mas o p-valor excessivamente elevado não permite re
+> jeitar a hipótese de que o efeito seja nulo.
+>         5) ambas variáveis explicativas adicionais parecem ter efeitos negativos sobre o CPI (i.e. inflação e desemprego mais ba
+> ixos aumentam a probabilidade de classificar um país como "limpo"). Embora o p-valor da inflação não esteja dentro dos níveis de
+>  significância usuais, observando o intervalo de confiança de 95%, bem como os resultados do modelo probit ordenado e os efeitos
+>  marginais (e respectivos p-valores), é adequado afirmar que o efeito não seja nulo.
+> ;
+.  * MARGINAL EFFECTS;
+. mfx;
+
+Marginal effects after probit
+      y  = Pr(dummy_cpi) (predict)
+         =  .12027118
+------------------------------------------------------------------------------
+variable |      dy/dx    Std. Err.     z    P>|z|  [    95% C.I.   ]      X
+---------+--------------------------------------------------------------------
+lo~p_ppp |   .0377238      .02293    1.65   0.100  -.007221  .082668   26.1494
+g~rct_~p |   .1197732      .04368    2.74   0.006   .034166  .205381   4.52648
+gini_i~x |  -.0226866      .00866   -2.62   0.009  -.039653  -.00572   36.6018
+p~15to~t |   .0022807      .01082    0.21   0.833  -.018927  .023489     65.27
+inflat~t |  -.0233586      .01129   -2.07   0.039  -.045487  -.00123      3.48
+unempl~t |  -.0272901      .00985   -2.77   0.006  -.046598 -.007982   8.26588
+------------------------------------------------------------------------------
+
+. * Comentário sobre os efeitos marginais.
+>         Por sua vez, os efeitos marginais indicam que:
+>         1) um acréscimo unitário na medida de renda de um país está associado a uma probabilidade de 3.77% de classificá-lo como
+>  "limpo". O efeito é significativo apenas ao nível de significância de 10%, mas os resultados do modelo ordenado corroboram a su
+> a importância explicativa. 
+>         2) um acréscimo unitário na medida de educação de um país está associado a uma probabilidade de 11.97% de classificá-lo 
+> como "limpo". O efeito é significativo ao nível de significância de 1%. 
+>         3) a desigualdade (índice de Gini) é também significativa ao nível de 1% e está associada a uma redução de 2.26% na prob
+> abilidade de classificar um país como "limpo". Os países mais desiguais, portanto, tendem a ser mais corruptos também.
+>         4) o efeito marginal da estrutura etária é provavelmente pequeno ou nulo (ao menos nesta estimação do modelo), devido ao
+>  seu efeito marginal pequeno (0.22%) e o p-valor a ele associado (0.833).
+>         5) tanto inflação quanto desemprego mostram-se variáveis explicativas significativas (aos níveis de 5% e 1%, respectivam
+> ente). E ambas estão associadas a uma redução de cerca de 2.5% na probabilidade de classificar um país como "limpo". Com isso, r
+> eforça-se a conjectura inicial acerca da relação entre corrupção, inflação e desemprego: países cujas taxas de inflação e desemp
+> rego são mais elevadas tendem a ser mais corruptos. 
+>         
+>         6) Como um todo, esses resultados sugerem que países mais ricos, mais educados, menos desiguais e com menores taxas de i
+> nflação e desemprego tendem a ser menos corruptos. De fato, parece ser o caso de que a corrupção seja "endêmica" aos países em d
+> esenvolvimento. 
+> ;
+.  * HIT RATE TABLE;
+. estat class;
+
+Probit model for dummy_cpi
+
+              -------- True --------
+Classified |         D            ~D  |      Total
+-----------+--------------------------+-----------
+     +     |        16             4  |         20
+     -     |         5            60  |         65
+-----------+--------------------------+-----------
+   Total   |        21            64  |         85
+
+Classified + if predicted Pr(D) >= .5
+True D defined as dummy_cpi != 0
+--------------------------------------------------
+Sensitivity                     Pr( +| D)   76.19%
+Specificity                     Pr( -|~D)   93.75%
+Positive predictive value       Pr( D| +)   80.00%
+Negative predictive value       Pr(~D| -)   92.31%
+--------------------------------------------------
+False + rate for true ~D        Pr( +|~D)    6.25%
+False - rate for true D         Pr( -| D)   23.81%
+False + rate for classified +   Pr(~D| +)   20.00%
+False - rate for classified -   Pr( D| -)    7.69%
+--------------------------------------------------
+Correctly classified                        89.41%
+--------------------------------------------------
+
+. * Comentário sobre a hit rate table.
+>         A hit rate table indica que a taxa de acerto do modelo é de 89.41% (i.e. tem uma precisão elevada).
+>         Em outras palavras, a partir desse conjunto de variáveis explicativas, é possível classificar corretamente o score de um
+>  país no CPI como "limpo" ou "sujo" cerca de 90% das vezes.
+> ;
+.  log close;
+      name:  <unnamed>
+       log:  C:\Users\B35346\Desktop\CPI\probit_CPI.log
+  log type:  text
+ closed on:  18 Nov 2021, 02:08:36
+----------------------------------------------------------------------------------------------------------------------------------

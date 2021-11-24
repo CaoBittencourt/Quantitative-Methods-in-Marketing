@@ -1,0 +1,300 @@
+----------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:\Users\B35346\Desktop\CPI\probit_ordered_CPI.log
+  log type:  text
+ opened on:  18 Nov 2021, 02:28:54
+
+. * MODELO PROBIT;
+. * Comentário sobre as variáveis utilizadas.
+> Para a estimação do modelo probit ordenado com variáveis de renda, educação, idade e desigualdade (dentre outras à escolha), emp
+> regou-se as seguintes variáveis. 
+> 
+> 1) Para a medida de renda, o logarítmo do PIB PPP (paridade de poder de compra, a fim de facilitar comparações entre países).
+> 2) Para medir a educação, os gastos do governo com educação (como porcentagem do PIB).
+> 3) Para estimar a idade, tomou-se como critério a população em idade economicamente ativa (PEA).
+> 4) E, como medida de desigualdade, o índice de Gini. 
+> 
+> Outras variáveis testadas foram (e.g. no caso de educação): a taxa de alfabetização de adultos e jovens, a evasão escolar de ado
+> lescentes e crianças, a colocação do país na Olimpíada Internacional de Matemática e assim por diante. 
+> 
+> Foram testadas muitas combinações de variáveis explicativas adicionais, dentre medidas macroeconômicas, contas nacionais e índic
+> es de liberdade econômica (pode-se visualizar a lista completa de variáveis testadas na base de dados consolidada). No entanto, 
+> por simplicidade e consistência empírica, optou-se por realizar um estudo focado apenas em duas variáveis adicionais: a taxa de 
+> inflação e a taxa de desemprego. 
+> 
+> A tese que motiva a escolha da primeira dessas duas medidas é inspirada nos modelos neoclássicos e monetaristas em Macroeconomia
+> , que associam políticas fiscais e monetárias expansivas iniciadas pelo governo a níveis de preços permanentemente mais elevados
+> . No contexto de corrupção, é de se esperar que governos mais corruptos, utilizando-se da máquina pública para benefício próprio
+>  ilícito, façam uso dessas mesmas políticas expansivas em seus esquemas de corrupção. Alguns exemplos clássicos são: o superfatu
+> ramento de obras públicas, a emissão ilegítima de papel moeda e o desvio de verba de programas sociais. Em todo caso, a elevação
+>  permanente nos níveis de preços é resultado final de "descuidos" (lícitos ou ilícitos) no manejo do tesouro nacional por parte 
+> do governo. Assim, é de se esperar que países com maiores taxas de inflação estejam também mais envolvidos com corrupção e, alte
+> rnadamente, que os governos percebidos como mais "limpos" sejam também aqueles com orçamentos e bases monetárias equilibrados e,
+>  portanto, taxas de inflação mais baixas. 
+> 
+> Analogamente, espera-se que a taxa de desemprego seja mais elevada em países mais corruptos. Para uma explicação detalhada das r
+> elações entre desemprego e corrupção ver, por exemplo: "Dynamic Relationship between Corruption and Youth Unemployment Empirical
+>  Evidences from a System GMM Approach" publicado pelo World Bank Group (BOUZID, 2016).
+>   
+> ;
+.  global y 
+>         dummy_cpi_ordered // Dummy para os níveis de CPI determinados: CPI <= 0.3, CPI > 0.3 e CPI < 0.7 CPI >= 0.7;   
+>         ;
+
+. global x
+>         log_gdp_ppp // Medida de renda;
+>         gov_expenditure_educ_prct_of_gdp // Medida de educação;
+>         gini_index // Medida de desigualdade;
+>         pop_ages_15to64_prct // Medida de estrutura etária da população;
+>         
+>         inflation_prct // Variável adicional: taxa de inflação;
+>         unemployment_prct // Variável adicional: taxa de desemprego;
+>         ;
+
+.         oprobit $y $x, vce(robust);
+
+Iteration 0:   log pseudolikelihood = -81.142433  
+Iteration 1:   log pseudolikelihood =  -55.85971  
+Iteration 2:   log pseudolikelihood = -55.042053  
+Iteration 3:   log pseudolikelihood = -55.038995  
+Iteration 4:   log pseudolikelihood = -55.038995  
+
+Ordered probit regression                       Number of obs     =         85
+                                                Wald chi2(6)      =      38.80
+                                                Prob > chi2       =     0.0000
+Log pseudolikelihood = -55.038995               Pseudo R2         =     0.3217
+
+--------------------------------------------------------------------------------------------------
+                                 |               Robust
+               dummy_cpi_ordered |      Coef.   Std. Err.      z    P>|z|     [95% Conf. Interval]
+---------------------------------+----------------------------------------------------------------
+                     log_gdp_ppp |   .2342875   .0954243     2.46   0.014     .0472593    .4213156
+gov_expenditure_educ_prct_of_gdp |   .3901637   .0956959     4.08   0.000     .2026032    .5777242
+                      gini_index |  -.1000196   .0216833    -4.61   0.000     -.142518   -.0575211
+            pop_ages_15to64_prct |   .0728087   .0373742     1.95   0.051    -.0004434    .1460608
+                  inflation_prct |   -.087428   .0242028    -3.61   0.000    -.1348647   -.0399913
+               unemployment_prct |  -.0351885   .0188972    -1.86   0.063    -.0722263    .0018493
+---------------------------------+----------------------------------------------------------------
+                           /cut1 |   6.901691   3.646361                      -.245046    14.04843
+                           /cut2 |   9.435607   3.762146                      2.061936    16.80928
+--------------------------------------------------------------------------------------------------
+
+.         * Comentário sobre os coeficientes. 
+>         Tratando-se de um modelo probit, não pode-se interpretar os coeficientes em termos de magnitude.
+>         Os sinais dos coeficientes, entretanto, indicam que:
+>         1) os efeitos da renda são positivos sobre a probabilidade de classificar um país como "limpo" a partir de seu score no 
+> CPI.
+>         2) a educação da população, medida pelos gastos do governo com educação, tem também um efeito positivo sobre o score de 
+> um país no CPI.
+>         3) ao contrário, a desigualdade (índice de Gini) tem efeito negativo sobre o score de um país no CPI. Assim, países mais
+>  desiguais tendem a ser identificados como "sujos".
+>         4) a estrutura etária da população (PEA) parece ter efeito positivo. Ao contrário do modelo probit não ordenado, nesse c
+> aso o efeito positivo parece ser significativo (cf. p-valor de 0.051)
+>         5) ambas variáveis explicativas adicionais parecem ter efeitos negativos sobre o CPI (i.e. inflação e desemprego mais ba
+> ixos aumentam a probabilidade de classificar um país como "limpo").
+>         6) como um todo, os coeficientes são significativos nos níveis usuais.  No caso dos coeficientes referentes à estrutura 
+> etária e ao desemprego, embora não apresentem p-valor precisamente inferior a 5%, ainda assim estão muito próximos. É, portanto,
+>  evidente que os efeitos estimados pelo modelo ordenado muito provavelmente não são nulos.
+> ;
+.         * MARGINAL EFFECTS;
+. mfx, predict(outcome(1));
+
+Marginal effects after oprobit
+      y  = Pr(dummy_cpi_ordered==1) (predict, outcome(1))
+         =  .06849808
+------------------------------------------------------------------------------
+variable |      dy/dx    Std. Err.     z    P>|z|  [    95% C.I.   ]      X
+---------+--------------------------------------------------------------------
+lo~p_ppp |   -.030936      .01476   -2.10   0.036  -.059867 -.002005   26.1494
+g~rct_~p |  -.0515184        .018   -2.86   0.004  -.086803 -.016234   4.52648
+gini_i~x |   .0132069      .00441    2.99   0.003   .004559  .021855   36.6018
+p~15to~t |  -.0096139       .0055   -1.75   0.080  -.020392  .001164     65.27
+inflat~t |   .0115443      .00444    2.60   0.009   .002835  .020253      3.48
+unempl~t |   .0046464      .00228    2.04   0.042   .000174  .009119   8.26588
+------------------------------------------------------------------------------
+
+. mfx, predict(outcome(2));
+
+Marginal effects after oprobit
+      y  = Pr(dummy_cpi_ordered==2) (predict, outcome(2))
+         =  .78391651
+------------------------------------------------------------------------------
+variable |      dy/dx    Std. Err.     z    P>|z|  [    95% C.I.   ]      X
+---------+--------------------------------------------------------------------
+lo~p_ppp |  -.0231009      .01582   -1.46   0.144  -.054111  .007909   26.1494
+g~rct_~p |  -.0384704      .02623   -1.47   0.143  -.089884  .012943   4.52648
+gini_i~x |    .009862      .00651    1.51   0.130  -.002903  .022627   36.6018
+p~15to~t |   -.007179      .00556   -1.29   0.196  -.018072  .003714     65.27
+inflat~t |   .0086205      .00549    1.57   0.116  -.002136  .019377      3.48
+unempl~t |   .0034696      .00338    1.03   0.304  -.003152  .010091   8.26588
+------------------------------------------------------------------------------
+
+. mfx, predict(outcome(3));
+
+Marginal effects after oprobit
+      y  = Pr(dummy_cpi_ordered==3) (predict, outcome(3))
+         =  .14758541
+------------------------------------------------------------------------------
+variable |      dy/dx    Std. Err.     z    P>|z|  [    95% C.I.   ]      X
+---------+--------------------------------------------------------------------
+lo~p_ppp |   .0540369      .02062    2.62   0.009   .013626  .094448   26.1494
+g~rct_~p |   .0899888      .02598    3.46   0.001    .03906  .140918   4.52648
+gini_i~x |  -.0230689      .00588   -3.92   0.000    -.0346 -.011538   36.6018
+p~15to~t |   .0167929      .00853    1.97   0.049   .000068  .033518     65.27
+inflat~t |  -.0201647      .00544   -3.71   0.000  -.030827 -.009502      3.48
+unempl~t |   -.008116      .00486   -1.67   0.095  -.017635  .001403   8.26588
+------------------------------------------------------------------------------
+
+. * Comentário sobre os efeitos marginais.
+>         Por sua vez, os efeitos marginais indicam que:
+>         1) um acréscimo unitário na medida de renda de um país está associado a:
+>                 a) uma redução de 3.09% na probabilidade de classificá-lo como "sujo". O efeito é quase certamente não nulo (cf.
+>  p-valor 0.036).
+>                 b) uma redução de 2.31% na probabilidade de classificá-lo como "intermediário". No entanto, é possível que o efe
+> ito seja nulo (cf. p-valor 0.144), embora os resultados do modelo não ordenado e das demais classificações (viz. "sujo" e "limpo
+> ") corroborem que esse não seja o caso.
+>                 c) um acréscimo de 5.40% na probabilidade de classificá-lo como "limpo". O efeito é significativo ao nível de si
+> gnificância de 1%.
+>                 d) em suma, países mais ricos tendem a ser menos corruptos. Esse achado está de acordo com a literatura (e.g. BO
+> UZID, 2016), segundo a qual a corrupção é um "problema endêmico" em economias em desenvolvimento.
+>                 
+>         2) um acréscimo unitário na medida de educação de um país está associado a:
+>                 a) uma redução de 5.15% na probabilidade de classificá-lo como "sujo". O efeito é quase certamente não nulo (cf.
+>  p-valor 0.004).
+>                 b) uma redução de 3.84% na probabilidade de classificá-lo como "intermediário". Novamente, é possível que o efei
+> to seja nulo (cf. p-valor 0.143), ainda que os resultados do modelo não ordenado e das demais classificações (viz. "sujo" e "lim
+> po") corroborem que esse não seja o caso.
+>                 c) um acréscimo de 8.99% na probabilidade de classificá-lo como "limpo". O efeito é significativo ao nível de si
+> gnificância de 1%.
+>                 d) em suma, países com educação mais elevada tendem a ser menos corruptos.
+>         
+>         3) um acréscimo unitário na medida de desigualdade econômica de um país está associado a:
+>                 a) um acréscimo de 1.32% na probabilidade de classificá-lo como "sujo". O efeito é quase certamente não nulo (cf
+> . p-valor 0.003).
+>                 b) um acréscimo de 0.98% na probabilidade de classificá-lo como "intermediário". Novamente, é possível que o efe
+> ito seja nulo (cf. p-valor 0.130), ainda que os resultados do modelo não ordenado e das demais classificações (viz. "sujo" e "li
+> mpo") corroborem que esse não seja o caso.
+>                 c) uma redução de 2.30% na probabilidade de classificá-lo como "limpo". O efeito é quase certamente não nulo (cf
+> . p-valor 0.000).
+>                 d) em suma, países mais desiguais tendem a ser mais corruptos.
+>         
+>         4) um acréscimo unitário na população economicamente ativa (medida etária) de um país está associado a:
+>                 a) uma redução de 0.96% na probabilidade de classificá-lo como "sujo". O efeito é possivelmente nulo em alguns n
+> íveis de significância, mas dificilmente ao nível de 10% (cf. p-valor 0.080).
+>                 b) uma redução de 0.71% na probabilidade de classificá-lo como "intermediário". É possível que o efeito seja nul
+> o (cf. p-valor 0.196), especialmente considerando os resultados do modelo não ordenado e dos efeitos marginais das demais classi
+> ficações (viz. "sujo" e "limpo").
+>                 c) um acréscimo de 1.67% na probabilidade de classificá-lo como "limpo". O efeito é significativo ao nível de si
+> gnificância de 5%. Esse resultado pode sugerir que países com maior proporção da população entre 15 e 65 anos (i.e. em idade eco
+> nomicamente ativa) sejam menos corruptos.
+>                 d) apesar da observação 4)c), como um todo, o efeito marginal da estrutura etária parece ser ambíguo ou nulo. 
+>         
+>         5) um acréscimo unitário na taxa de inflação de um país está associado a:
+>                 a) um acréscimo de 1.15% na probabilidade de classificá-lo como "sujo". O efeito é significativo ao nível de sig
+> nificância de 1%.
+>                 b) um acréscimo de 0.86% na probabilidade de classificá-lo como "intermediário". O efeito é possivelmente nulo (
+> cf. p-valor 0.116), ainda que os resultados do modelo não ordenado e das demais classificações (viz "sujo" e "limpo") corroborem
+>  que esse não seja o caso.
+>                 c) uma redução de 2.01% na probabilidade de classificá-lo como "limpo". O efeito é quase certamente não nulo (cf
+> . p-valor 0.000).
+>                 d) em suma, como esperado, países com um taxa de inflação mais elevada tendem a ser mais corruptos.
+>         
+>         6) um acréscimo unitário na taxa de desemprego de um país está associado a:
+>                 a) um acréscimo de 0.46% na probabilidade de classificá-lo como "sujo". Embora pequeno, o efeito é significativo
+>  ao nível de significância de 5%.
+>                 b) um acréscimo de 0.34% na probabilidade de classificá-lo como "intermediário". O efeito é possivelmente nulo (
+> cf. p-valor 0.304), ainda que os resultados do modelo não ordenado sugiram que esse não seja o caso.
+>                 c) uma redução de 0.81% na probabilidade de classificá-lo como "limpo". O efeito é possivelmente nulo em alguns 
+> níveis de significância, mas dificilmente ao nível de 10% (cf. p-valor 0.095).
+>                 d) em suma, ao contrário da estimação do modelo não ordenado, nesse caso o efeito marginal do desemprego parece 
+> ser pequeno ou nulo.
+>         
+>         7) Esses resultados sugerem que países mais ricos, mais educados, menos desiguais e com menores taxas de inflação tendem
+>  a ser menos corruptos. De fato, parece ser o caso de que a corrupção seja "endêmica" aos países em desenvolvimento. 
+>         
+> ;
+.  * PREVISÕES DO MODELO;
+. predict pr1, pr outcome(1);
+
+. predict pr2, pr outcome(2);
+
+. predict pr3, pr outcome(3);
+
+. * HIT RATE TABLE
+>         Embora o comando "estat class" aplique-se apenas aos modelos probit e logit não ordenados, pode-se começar a averiguar a
+>  precisão dos modelos ordenados comparando a média das probabilidades previstas pelo modelo com a distribuição original dos dado
+> s. O comando "tabulate" fornece a frequência de cada categoria de CPI e o sumário das previsões é obtido com o comando "summariz
+> e". Além disso, é possível calcular (manualmente) a taxa de acerto, como demonstrado a seguir.
+> ;
+. summarize pr1 pr2 pr3;
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+         pr1 |         85    .1662312    .2113298    .000017   .8698853
+         pr2 |         85    .5851892    .2177812   .0535669   .7948186
+         pr3 |         85    .2485796    .2730123   .0001262   .9464161
+
+. tabulate $y;
+
+DUMMY_CPI_O |
+     RDERED |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         14       16.47       16.47
+          2 |         50       58.82       75.29
+          3 |         21       24.71      100.00
+------------+-----------------------------------
+      Total |         85      100.00
+
+. * Comentário sobre as previsões do modelo.
+>         Comparando a tabela de frequência original com as previsões do modelo probit ordenado, constata-se que:
+>         1) nos dados originais, 16.47% dos países são classificados como "sujos" (CPI <= 0.3). O modelo probit ordenado prevê 16
+> .62% de países "sujos".
+>         2) nos dados originais, 58.82% dos países são classificados como "indermediários" (CPI > 0.3 e CPI < 0.7). O modelo prob
+> it ordenado prevê 58.51% de países "indermediários".
+>         3) nos dados originais, 24.71% dos países são classificados como "limpos" (CPI >= 0.7). O modelo probit ordenado prevê 2
+> 4.85% de países "limpos".
+>         
+>         4) é evidente que o modelo prevê adequadamente o número de países em cada categoria.
+> ;
+. gen pr1_1 = ((pr1 - pr2 - pr3) > 0);
+
+. gen pr2_2 = ((pr2 - pr1 - pr3) > 0);
+
+. gen pr3_3 = ((pr3 - pr1 - pr2) > 0);
+
+. replace pr1_1 = 1 if pr1_1 == 1;
+(0 real changes made)
+
+. replace pr2_2 = 2 if pr2_2 == 1;
+(61 real changes made)
+
+. replace pr3_3 = 3 if pr3_3 == 1;
+(16 real changes made)
+
+. gen pr = pr1_1 + pr2_2 + pr3_3;
+
+. gen acerto = dummy_cpi_ordered == pr;
+
+. summarize acerto;
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      acerto |         85    .7294118    .4469003          0          1
+
+. * Comentário sobre as previsões do modelo.
+>         Ao calcular a taxa de acerto (manualmente), verifica-se, entretanto, que a precisão do modelo ordenado é menor (72.94%) 
+> do que a do modelo original (em mais de 10%).
+>         As possíveis explicações para a menor precisão são duas, a princípio: 
+>         1) a seleção amostral é restrita demais para permitir uma precisão adequada. Provavelmente um modelo estimado com base e
+> m mais de um ano de referência teria precisão mais elevada.
+>         2) o modelo ordenado conta com três categorias de classificação, de modo que a complexidade maior tende a diminuir a pre
+> cisão dos resultados. O modelo probit dicotômico (original) é mais "conciso" e, por esse mesmo motivo, também mais preciso: a ma
+> ior concentração dos dados aumenta a consistência dos resultados. Assim, o que o modelo ordenado ganha em especificidade também 
+> perde em precisão.
+> ;
+. log close;
+      name:  <unnamed>
+       log:  C:\Users\B35346\Desktop\CPI\probit_ordered_CPI.log
+  log type:  text
+ closed on:  18 Nov 2021, 02:28:57
+----------------------------------------------------------------------------------------------------------------------------------
